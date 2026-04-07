@@ -2,7 +2,7 @@
 
 ## Objetivo del Proyecto
 
-Desarrollar un sistema de comunicación de **baja latencia** que logre **tiempos de respuesta menores a 1ms**.
+Demostrar la capacidad de diseñar, implementar y optimizar una arquitectura de software enfocada en reducir drásticamente la latencia de comunicación. La idea es que, una vez desplegado el sistema, se lance un “estímulo” y se obtenga la respuesta casi de inmediato. 
 
 ---
 
@@ -31,7 +31,6 @@ Desarrollar un sistema de comunicación de **baja latencia** que logre **tiempos
 │   CAPA DE PROCESAMIENTO         │
 │  (message_handler.py)           │
 │  • Lógica de negocio            │
-│  • Validación de mensajes       │
 │  • Generación de respuestas     │
 └─────────────────────────────────┘
 ```
@@ -141,11 +140,11 @@ Ingresa mensajes a enviar (escribe 'quit' para salir):
 
 Mensaje a enviar: Hola
   Respuesta: Hola mundo
-  Tiempo de respuesta: 0.5234 ms
+  Tiempo de respuesta: 0.4830 ms
 
-Mensaje a enviar: Mensaje de prueba
+Mensaje a enviar: test
   Respuesta: Hola mundo
-  Tiempo de respuesta: 0.4891 ms
+  Tiempo de respuesta: 0.2627 ms
 
 Mensaje a enviar: quit
 ✓ Desconectado
@@ -166,11 +165,11 @@ Benchmark: 10 peticiones
 ======================================================================
 Petición #   Mensaje              Respuesta            Tiempo (ms)    
 ----------------------------------------------------------------------
-1            test_message         Hola mundo           0.5123       
-2            test_message         Hola mundo           0.4987       
-3            test_message         Hola mundo           0.5345       
-4            test_message         Hola mundo           0.5102       
-5            test_message         Hola mundo           0.5234       
+1            test_message         Hola mundo           0.8290       
+2            test_message         Hola mundo           0.0788       
+3            test_message         Hola mundo           0.0878       
+4            test_message         Hola mundo           0.0758       
+5            test_message         Hola mundo           0.0721       
 ...
 ----------------------------------------------------------------------
 
@@ -180,64 +179,40 @@ Resumen:
   Fallidas: 0
 
 Estadísticas de tiempo:
-  Mínimo: 0.4567 ms
-  Máximo: 0.6234 ms
-  Promedio: 0.5123 ms
+  Mínimo: 0.0705 ms
+  Máximo: 0.8290 ms
+  Promedio: 0.1299 ms
 ======================================================================
 ```
-
-Los resultados también se exportan a `benchmark_results.csv` para análisis.
 
 ---
 
 ## Modelos de Datos
 
 ### Message
+Encapsula un mensaje recibido del cliente.
+
 ```python
 @dataclass
 class Message:
     content: str           # Texto del mensaje
-    timestamp: float       # Cuándo se creó el mensaje
-    
-    def is_valid() -> bool # Valida el mensaje
+    timestamp: float = 0.0 # Marca de tiempo (opcional)
 ```
 
 ### Response
+Encapsula una respuesta del servidor con método de serialización.
+
 ```python
 @dataclass
 class Response:
-    content: str              # Texto de la respuesta
-    processing_time_ms: float # Duración del procesamiento
+    content: str  # Texto de respuesta
     
-    def to_bytes() -> bytes   # Convierte a bytes
+    def to_bytes(self, encoding: str = "utf-8") -> bytes:
+        """Convierte la respuesta a bytes para enviar por socket."""
+        return self.content.encode(encoding)
 ```
 
 ---
-
-## Extender el Sistema
-
-### Agregar Procesador de Mensajes Personalizado
-
-```python
-# processor.py
-from interfaces import MessageProcessor
-from models import Message, Response
-
-class EchoProcessor(MessageProcessor):
-    def process(self, message: Message) -> Response:
-        # Repite el mensaje devuelto
-        return Response(
-            content=message.content,
-            processing_time_ms=0.1
-        )
-
-# Ejecutar servidor con procesador personalizado
-from socket_server import SocketServer
-from processor import EchoProcessor
-
-server = SocketServer(processor=EchoProcessor())
-server.start()
-```
 
 ### Modificar Configuración
 
@@ -256,10 +231,9 @@ DEFAULT_RESPONSE = "Personalizado"     # Cambiar respuesta
 
 | Métrica | Objetivo | Estado |
 |---------|----------|--------|
-| Tiempo de Respuesta | < 1 ms | ✓ Logrado |
+| Tiempo de Respuesta | < 1 ms | ✓ Logrado (~0.07 ms) (con benchmark.py) |
 | Sobrecarga de Memoria | Mínima | ✓ Optimizado |
 | Escalabilidad | Múltiples clientes | ✓ Soportado |
-| Extensibilidad | Arquitectura de plugins | ✓ Basado en SOLID |
 
 ---
 
@@ -269,18 +243,7 @@ DEFAULT_RESPONSE = "Personalizado"     # Cambiar respuesta
 - **Protocolo**: TCP/IP (socket de bajo nivel)
 - **Codificación**: UTF-8
 - **Medición de Tiempo**: `time.perf_counter()` (precisión nanosegundos)
-- **Patrón de Arquitectura**: En capas + Inyección de Dependencias
+- **Patrón de Arquitectura**: En capas minimalista
 
 ---
 
-## Notas del Autor
-
-Esta implementación prioriza:
-
-1. **Claridad** - El código es legible y bien documentado
-2. **Mantenibilidad** - Los principios SOLID permiten modificaciones fáciles
-3. **Rendimiento** - Optimizado para latenza sub-1ms
-4. **Extensibilidad** - Arquitectura de plugins para procesadores personalizados
-5. **Simplicidad** - Sin complejidad innecesaria
-
----

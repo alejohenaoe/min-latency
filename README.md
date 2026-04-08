@@ -49,7 +49,7 @@ Arquitectura **minimalista** enfocada únicamente en **baja latencia**:
 - **`benchmark.py`**: Medición de rendimiento
 
 
-## Decisiones de Rendimiento Clave
+## Decisiones de Arquitectura Priorizando Rendimiento
 
 ### 1. **TCP_NODELAY = 1**
 

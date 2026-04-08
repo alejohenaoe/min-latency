@@ -30,7 +30,7 @@ Demostrar la capacidad de diseñar, implementar y optimizar una arquitectura de 
 ┌─────────────────────────────────┐
 │   CAPA DE PROCESAMIENTO         │
 │  (message_handler.py)           │
-│  • Lógica de negocio            │
+│  • Lógica             │
 │  • Generación de respuestas     │
 └─────────────────────────────────┘
 ```
